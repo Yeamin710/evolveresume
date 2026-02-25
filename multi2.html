@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evolve Resume - Professional CV Builder</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Roboto+Mono&family=Lora:ital,wght@0,400;0,700;1,400;1,700&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&family=Montserrat:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,700;1,400&family=Source+Code+Pro&family=Crimson+Pro:ital,wght@0,400;0,700;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Work+Sans:ital,wght@0,400;0,700;1,400&family=PT+Serif:ital,wght@0,400;0,700;1,400&family=Ubuntu:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #000000;
+            --body-text-color: #1e293b;
+            --brand-green: #4ade80; 
+            --font-family: 'Inter', sans-serif;
+            --base-font-size: 14px;
+            --date-font-size: 10px;
+            --split-left-bg: #ffffff;
+            --split-right-bg: #ffffff;
+            --split-left-text: #1e293b;
+            --split-right-text: #1e293b;
+            --header-align: center;
+            --body-align: left;
+        }
+
+        body { background-color: #f8fafc; font-family: 'Inter', sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+        .a4-container {
+            width: 210mm;
+            min-height: 297mm;
+            margin: auto;
+            background: white;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .preview-pane {
+            overflow-y: auto;
+            background: #f1f5f9;
+            height: calc(100vh - 64px);
+            padding: 40px 0;
+        }
+
+        .sidebar { height: calc(100vh - 64px); overflow-y: auto; background-color: #ffffff; width: 400px; flex-shrink: 0; }
+
+        .section-item {
+            cursor: grab;
+            background: #fff;
+            border: 1px solid #f1f5f9;
+            margin-bottom: 8px;
+            padding: 10px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s;
+        }
+        .section-item:hover { border-color: var(--primary-color); }
+
+        .cv-content { 
+            font-family: var(--font-family); 
+            color: var(--body-text-color); 
+            word-wrap: break-word;
+            font-size: var(--base-font-size);
+            line-height: 1.5;
+            min-height: 297mm;
+            text-align: var(--body-align);
+        }
+
+        .cv-header { text-align: var(--header-align) !important; }
+        .cv-section-title { text-align: var(--header-align) !important; }
+        .cv-list-item { text-align: inherit; width: 100%; }
+
+        .template-harvard .cv-header { border-bottom: 1.5pt solid black; padding-bottom: 5px; margin-bottom: 15px; }
+        .template-harvard .cv-section-title { border-bottom: 1pt solid black; margin-top: 12px; margin-bottom: 8px; font-variant: small-caps; }
+
+        .template-oxford .cv-header { margin-bottom: 25px; }
+        .template-oxford .cv-section-title { border-left: 4pt solid var(--primary-color); padding-left: 10px; background: #f8fafc; }
+
+        .template-split { display: flex; min-height: 297mm; text-align: left; }
+        .template-split .side-bar { width: 33%; background-color: var(--split-left-bg); padding: 15mm 8mm; color: var(--split-left-text); }
+        .template-split .main-col { width: 67%; background-color: var(--split-right-bg); padding: 15mm 10mm; color: var(--split-right-text); }
+
+        .template-standard { padding: 15mm; }
+
+        .template-europass .cv-section-title { color: #003399; border-bottom: 1px solid #ccc; font-weight: 300; }
+
+        .input-group { background: #fdfdfd; border: 1px solid #f1f5f9; padding: 12px; border-radius: 8px; margin-bottom: 12px; }
+        .drag-handle { color: #cbd5e1; cursor: grab; }
+        .field-label { font-size: 0.65rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 4px; display: block; }
+
+        .skill-tag {
+            background-color: rgba(0,0,0,0.05);
+            color: var(--primary-color);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            display: inline-block;
+            margin: 2px;
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+
+        .template-card {
+            border: 2px solid #f1f5f9;
+            border-radius: 12px;
+            padding: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        .template-card.active { border-color: var(--brand-green); background: #f0fdf4; }
+        .template-card .thumb-box { height: 40px; border-radius: 4px; margin-bottom: 4px; background: #f1f5f9; }
+
+        .cv-photo {
+            width: 100%;
+            aspect-ratio: 1/1;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .sidebar-section-title {
+            font-size: 10px;
+            font-weight: 900;
+            color: #000000;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: block;
+        }
+
+        .collapsible-header {
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            user-select: none;
+        }
+
+        .collapsible-content {
+            transition: max-height 0.3s ease-out;
+            overflow: hidden;
+        }
+
+        .collapsible-content.collapsed {
+            max-height: 0;
+        }
+
+        .glow-green { color: var(--brand-green); text-shadow: 0 0 10px rgba(74, 222, 128, 0.7); }
+        .sidebar::-webkit-scrollbar { width: 5px; }
+        .sidebar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+
+        .formatting-btn {
+            padding: 2px 4px;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            font-size: 9px;
+            background: white;
+            transition: all 0.1s;
+            font-weight: bold;
+        }
+        .formatting-btn.active {
+            background: var(--brand-green);
+            border-color: var(--brand-green);
+            color: black;
+        }
+
+        .chevron {
+            transition: transform 0.3s;
+        }
+        .collapsed-chevron {
+            transform: rotate(-90deg);
+        }
+    </style>
+</head>
+<body>
+
+    <header class="bg-white border-b px-6 py-3 flex justify-between items-center z-10">
+        <div class="flex items-center gap-3">
+            <svg width="32" height="32" viewBox="0 0 100 100" fill="none">
+                <rect x="5" y="5" width="90" height="90" rx="12" fill="#4ade80" />
+                <rect x="25" y="25" width="50" height="50" rx="4" fill="white"/> 
+            </svg>
+            <h1 class="text-xl font-bold tracking-tight">
+                <span class="glow-green">Evolve</span> 
+                <span class="text-black">Resume</span>
+            </h1>
+        </div>
+        <button onclick="downloadPDF()" class="bg-black hover:bg-zinc-800 text-[#4ade80] px-6 py-2 rounded-xl font-bold shadow-lg transition-all active:scale-95 border border-zinc-800">
+            Export PDF
+        </button>
+    </header>
+
+    <main class="flex-1 flex overflow-hidden">
+        <aside class="sidebar no-print p-6 space-y-2 border-r">
+            
+            <!-- Select Template -->
+            <section class="border-b last:border-0 pb-2">
+                <div class="collapsible-header" onclick="toggleCollapsible('template-content', 'template-chevron')">
+                    <h2 class="sidebar-section-title">Select Template</h2>
+                    <svg id="template-chevron" class="chevron w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </div>
+                <div id="template-content" class="collapsible-content">
+                    <div class="grid grid-cols-3 gap-3 pb-4">
+                        <div class="template-card active" onclick="setTemplate('current')" id="t-current">
+                            <div class="thumb-box"></div>
+                            <span class="text-[10px] font-bold">Modern</span>
+                        </div>
+                        <div class="template-card" onclick="setTemplate('harvard')" id="t-harvard">
+                            <div class="thumb-box"></div>
+                            <span class="text-[10px] font-bold">Harvard</span>
+                        </div>
+                        <div class="template-card" onclick="setTemplate('oxford')" id="t-oxford">
+                            <div class="thumb-box"></div>
+                            <span class="text-[10px] font-bold">Oxford</span>
+                        </div>
+                        <div class="template-card" onclick="setTemplate('europass')" id="t-europass">
+                            <div class="thumb-box"></div>
+                            <span class="text-[10px] font-bold">Europass</span>
+                        </div>
+                        <div class="template-card" onclick="setTemplate('split')" id="t-split">
+                            <div class="thumb-box flex"><div class="w-1/3 h-full bg-zinc-300"></div><div class="w-2/3 h-full bg-white border"></div></div>
+                            <span class="text-[10px] font-bold">Split-Photo</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Layout & Alignment -->
+            <section class="border-b last:border-0 pb-2">
+                <div class="collapsible-header" onclick="toggleCollapsible('layout-content', 'layout-chevron')">
+                    <h2 class="sidebar-section-title">Layout & Alignment</h2>
+                    <svg id="layout-chevron" class="chevron w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </div>
+                <div id="layout-content" class="collapsible-content">
+                    <div class="space-y-4 pb-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <span class="field-label">Header Alignment</span>
+                                <div class="flex border rounded-lg overflow-hidden">
+                                    <button onclick="setAlignment('header', 'left')" id="btn-h-left" class="flex-1 py-1 text-xs hover:bg-gray-100 border-r">Left</button>
+                                    <button onclick="setAlignment('header', 'center')" id="btn-h-center" class="flex-1 py-1 text-xs hover:bg-gray-100 border-r bg-gray-50">Center</button>
+                                    <button onclick="setAlignment('header', 'right')" id="btn-h-right" class="flex-1 py-1 text-xs hover:bg-gray-100">Right</button>
+                                </div>
+                            </div>
+                            <div>
+                                <span class="field-label">Body Alignment</span>
+                                <div class="flex border rounded-lg overflow-hidden">
+                                    <button onclick="setAlignment('body', 'left')" id="btn-b-left" class="flex-1 py-1 text-xs hover:bg-gray-100 border-r bg-gray-50">Left</button>
+                                    <button onclick="setAlignment('body', 'center')" id="btn-b-center" class="flex-1 py-1 text-xs hover:bg-gray-100 border-r">Center</button>
+                                    <button onclick="setAlignment('body', 'right')" id="btn-b-right" class="flex-1 py-1 text-xs hover:bg-gray-100">Right</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 gap-4">
+                            <div>
+                                <span class="field-label flex justify-between">Body Font Size <span id="fontSizeDisplay">14px</span></span>
+                                <input type="range" id="fontSizeSlider" min="10" max="20" value="14" oninput="updateStyle()" class="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#4ade80]">
+                            </div>
+                            <div>
+                                <span class="field-label flex justify-between">Date Font Size <span id="dateFontSizeDisplay">10px</span></span>
+                                <input type="range" id="dateFontSizeSlider" min="8" max="18" value="10" oninput="updateStyle()" class="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#4ade80]">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Appearance -->
+            <section class="border-b last:border-0 pb-2">
+                <div class="collapsible-header" onclick="toggleCollapsible('appearance-content', 'appearance-chevron')">
+                    <h2 class="sidebar-section-title">Appearance</h2>
+                    <svg id="appearance-chevron" class="chevron w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </div>
+                <div id="appearance-content" class="collapsible-content">
+                    <div class="space-y-4 pb-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <span class="field-label">Accent Color</span>
+                                <input type="color" id="themeColor" value="#000000" oninput="updateStyle()" class="w-full h-10 p-1 cursor-pointer bg-white border border-slate-100 rounded-lg">
+                            </div>
+                            <div>
+                                <span class="field-label">Typography</span>
+                                <select id="fontFamily" onchange="updateStyle()" class="w-full h-10 px-2 border border-slate-100 rounded-lg bg-slate-50 text-xs outline-none">
+                                    <option value="'Inter', sans-serif">Inter (Modern Sans)</option>
+                                    <option value="'Montserrat', sans-serif">Montserrat (Geometric)</option>
+                                    <option value="'Open Sans', sans-serif">Open Sans (Classic Sans)</option>
+                                    <option value="'Work Sans', sans-serif">Work Sans (Professional)</option>
+                                    <option value="'Ubuntu', sans-serif">Ubuntu (Modern)</option>
+                                    <option value="'Lora', serif">Lora (Elegant Serif)</option>
+                                    <option value="'Merriweather', serif">Merriweather (Readability)</option>
+                                    <option value="'Playfair Display', serif">Playfair (High-End)</option>
+                                    <option value="'Crimson Pro', serif">Crimson Pro (Traditional)</option>
+                                    <option value="'Libre Baskerville', serif">Libre Baskerville (Legal)</option>
+                                    <option value="'PT Serif', serif">PT Serif (Academic)</option>
+                                    <option value="'Roboto Mono', monospace">Roboto Mono (Tech)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <span class="field-label">Body Text Color</span>
+                                <input type="color" id="bodyTextColor" value="#1e293b" oninput="updateStyle()" class="w-full h-10 p-1 cursor-pointer bg-white border border-slate-100 rounded-lg">
+                            </div>
+                            <div id="split-bg-controls" class="hidden">
+                                <span class="field-label">Sidebar Background</span>
+                                <input type="color" id="splitLeftBg" value="#ffffff" oninput="updateStyle()" class="w-full h-10 p-1 cursor-pointer bg-white border border-slate-100 rounded-lg">
+                            </div>
+                        </div>
+                        <div id="split-text-controls" class="hidden">
+                            <span class="field-label">Sidebar Font Color</span>
+                            <input type="color" id="splitLeftText" value="#1e293b" oninput="updateStyle()" class="w-full h-10 p-1 cursor-pointer bg-white border border-slate-100 rounded-lg">
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PHOTO UPLOAD -->
+            <section id="photo-upload-section" class="pt-4 border-b pb-4">
+                <h2 class="sidebar-section-title mb-3">Profile Photo</h2>
+                <input type="file" accept="image/*" onchange="handlePhoto(event)" class="text-xs w-full p-2 border border-dashed rounded-lg cursor-pointer">
+            </section>
+
+            <!-- SECTION ORDER -->
+            <section class="pt-6 border-b pb-6">
+                <h2 class="sidebar-section-title mb-4">Section Order</h2>
+                <div id="sectionSortable"></div>
+            </section>
+
+            <!-- PERSONAL INFO -->
+            <section class="space-y-3 pt-6 border-b pb-6">
+                <div class="flex justify-between items-center">
+                    <h2 class="sidebar-section-title">Personal Info</h2>
+                    <button onclick="addPersonalInfoField()" class="text-[10px] font-extrabold text-blue-500 hover:underline">+ FIELD</button>
+                </div>
+                <div id="personalInfoInputs" class="space-y-2"></div>
+            </section>
+
+            <!-- DYNAMIC EDITORS -->
+            <div id="dynamicSectionEditors" class="space-y-8 pt-8"></div>
+        </aside>
+
+        <section class="flex-1 preview-pane">
+            <div id="cv-container" class="a4-container">
+                <div id="cv-target" class="cv-content"></div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        let currentTemplate = 'current';
+        let sectionOrder = ['profile', 'skills', 'experience', 'education'];
+        let profilePhoto = null;
+        let headerAlign = 'center';
+        let bodyAlign = 'left';
+        
+        const data = {
+            personal: {
+                name: "Alexander Hamilton",
+                title: "Software Architect",
+                details: [
+                    { label: "Email", value: "alex@evolve.com" },
+                    { label: "Phone", value: "+1 555 1234" },
+                    { label: "LinkedIn", value: "linkedin.com/in/alex" }
+                ]
+            },
+            sections: {
+                profile: { 
+                    name: 'Summary', 
+                    type: 'text', 
+                    content: 'Strategic software leader with a decade of experience in distributed systems and cloud-native architecture.',
+                    bold: false, italic: false, underline: false
+                },
+                skills: { name: 'Expertise', type: 'tags', content: 'TypeScript, Go, Kubernetes, React, AWS, System Design' },
+                experience: { 
+                    name: 'Experience', 
+                    type: 'list', 
+                    items: [{ 
+                        title: 'Principal Engineer', 
+                        company: 'Global Tech', 
+                        date: '2020 - Present', 
+                        dateBold: false,
+                        dateItalic: true,
+                        dateUnderline: false,
+                        desc: '• Designed high-scale API gateways serving 1M+ req/sec.\n• Reduced infrastructure costs by 40% through container optimization.',
+                        bold: true, italic: false, underline: false,
+                        descBold: false, descItalic: false, descUnderline: false
+                    }]
+                },
+                education: { 
+                    name: 'Education', 
+                    type: 'list', 
+                    items: [{ 
+                        title: 'MSc Computer Science', 
+                        company: 'Stanford University', 
+                        date: '2015', 
+                        dateBold: false,
+                        dateItalic: false,
+                        dateUnderline: false,
+                        desc: 'Specialization in Machine Learning',
+                        bold: true, italic: false, underline: false,
+                        descBold: false, descItalic: false, descUnderline: false
+                    }]
+                }
+            }
+        };
+
+        function toggleCollapsible(contentId, chevronId) {
+            const content = document.getElementById(contentId);
+            const chevron = document.getElementById(chevronId);
+            content.classList.toggle('collapsed');
+            chevron.classList.toggle('collapsed-chevron');
+        }
+
+        function setAlignment(type, val) {
+            if (type === 'header') headerAlign = val;
+            else bodyAlign = val;
+            
+            const prefix = type === 'header' ? 'h' : 'b';
+            ['left', 'center', 'right'].forEach(a => {
+                const btn = document.getElementById(`btn-${prefix}-${a}`);
+                if (btn) btn.classList.remove('bg-gray-50');
+            });
+            const activeBtn = document.getElementById(`btn-${prefix}-${val}`);
+            if (activeBtn) activeBtn.classList.add('bg-gray-50');
+
+            document.documentElement.style.setProperty(`--${type}-align`, val);
+            render();
+        }
+
+        function setTemplate(t) {
+            currentTemplate = t;
+            document.querySelectorAll('.template-card').forEach(c => c.classList.remove('active'));
+            document.getElementById('t-' + t).classList.add('active');
+            
+            const splitBgCtrls = document.getElementById('split-bg-controls');
+            const splitTextCtrls = document.getElementById('split-text-controls');
+            
+            if(t === 'split') {
+                splitBgCtrls.classList.remove('hidden');
+                splitTextCtrls.classList.remove('hidden');
+            } else {
+                splitBgCtrls.classList.add('hidden');
+                splitTextCtrls.classList.add('hidden');
+            }
+
+            const fontEl = document.getElementById('fontFamily');
+            if(t === 'harvard') fontEl.value = "'Lora', serif";
+            else if(t === 'oxford') fontEl.value = "'Playfair Display', serif";
+            
+            updateStyle();
+        }
+
+        function handlePhoto(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (f) => {
+                profilePhoto = f.target.result;
+                render();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function updateStyle() {
+            const themeColor = document.getElementById('themeColor').value;
+            const bodyColor = document.getElementById('bodyTextColor').value;
+            const leftBg = document.getElementById('splitLeftBg').value;
+            const leftText = document.getElementById('splitLeftText').value;
+            const fontSize = document.getElementById('fontSizeSlider').value;
+            const dateFontSize = document.getElementById('dateFontSizeSlider').value;
+            
+            document.getElementById('fontSizeDisplay').innerText = fontSize + 'px';
+            document.getElementById('dateFontSizeDisplay').innerText = dateFontSize + 'px';
+            
+            document.documentElement.style.setProperty('--primary-color', themeColor);
+            document.documentElement.style.setProperty('--body-text-color', bodyColor);
+            document.documentElement.style.setProperty('--font-family', document.getElementById('fontFamily').value);
+            document.documentElement.style.setProperty('--split-left-bg', leftBg);
+            document.documentElement.style.setProperty('--split-left-text', leftText);
+            document.documentElement.style.setProperty('--base-font-size', fontSize + 'px');
+            document.documentElement.style.setProperty('--date-font-size', dateFontSize + 'px');
+            render();
+        }
+
+        function render() {
+            const target = document.getElementById('cv-target');
+            target.className = `cv-content template-${currentTemplate}`;
+            
+            let html = "";
+            const p = data.personal;
+            const photoHtml = profilePhoto ? `<img src="${profilePhoto}" class="cv-photo">` : "";
+            
+            // Note: Colors are explicitly set to avoid opacity issues when "black" is intended
+            if (currentTemplate === 'split') {
+                html = `<div class="template-split">
+                    <div class="side-bar">
+                        ${photoHtml}
+                        <h1 class="text-2xl font-bold leading-tight mb-1" style="color: var(--primary-color)">${p.name}</h1>
+                        <p class="text-xs uppercase tracking-widest font-semibold mb-8" style="color: var(--body-text-color); opacity: 0.9;">${p.title}</p>
+                        <div class="space-y-4 mb-10">
+                            <div class="sidebar-section-title !text-[9px] border-b pb-1" style="color: inherit;">Contact</div>
+                            ${p.details.map(d => `<div class="text-[10px] mb-3"><strong class="block uppercase text-[8px] mb-0.5" style="color: #000000; font-weight: 900;">${d.label}</strong>${d.value}</div>`).join('')}
+                        </div>
+                        ${renderSection('skills')}
+                    </div>
+                    <div class="main-col" style="color: var(--body-text-color)">
+                        ${sectionOrder.filter(id => id !== 'skills').map(id => renderSection(id)).join('')}
+                    </div>
+                </div>`;
+            } else {
+                html = `<div class="template-standard">
+                    <div class="cv-header mb-8">
+                        ${currentTemplate === 'europass' ? '<div class="text-blue-800 font-bold mb-2">CURRICULUM VITAE</div>' : ''}
+                        <h1 class="text-4xl font-black uppercase tracking-tight" style="color: var(--primary-color)">${p.name}</h1>
+                        <div class="text-xl font-medium mt-1" style="color: var(--body-text-color); opacity: 0.85;">${p.title}</div>
+                        <div class="flex flex-wrap gap-x-4 gap-y-1 mt-4 text-[11px] uppercase tracking-wider font-bold ${headerAlign === 'center' ? 'justify-center' : headerAlign === 'right' ? 'justify-end' : ''}" style="color: var(--body-text-color);">
+                            ${p.details.map(d => `<span><b style="color: #000000;">${d.label}:</b> ${d.value}</span>`).join(' • ')}
+                        </div>
+                    </div>
+                    ${sectionOrder.map(id => renderSection(id)).join('')}
+                </div>`;
+            }
+
+            target.innerHTML = html;
+        }
+
+        function renderSection(id) {
+            const s = data.sections[id];
+            if (!s) return "";
+            
+            let content = "";
+            if (s.type === 'list') {
+                content = s.items.map(i => {
+                    const titleStyle = `font-weight: ${i.bold ? 'bold' : 'normal'}; font-style: ${i.italic ? 'italic' : 'normal'}; text-decoration: ${i.underline ? 'underline' : 'none'};`;
+                    const dateStyle = `font-size: var(--date-font-size); color: var(--body-text-color); font-weight: ${i.dateBold ? 'bold' : 'normal'}; font-style: ${i.dateItalic ? 'italic' : 'normal'}; text-decoration: ${i.dateUnderline ? 'underline' : 'none'}; opacity: 1;`;
+                    const descStyle = `font-weight: ${i.descBold ? 'bold' : 'normal'}; font-style: ${i.descItalic ? 'italic' : 'normal'}; text-decoration: ${i.descUnderline ? 'underline' : 'none'}; color: inherit;`;
+
+                    let titleRowClasses = "flex items-baseline gap-2";
+                    if (bodyAlign === 'center') titleRowClasses += " justify-center";
+                    else if (bodyAlign === 'right') titleRowClasses += " justify-end flex-row-reverse";
+                    else titleRowClasses += " justify-between";
+
+                    return `
+                    <div class="cv-list-item mb-5">
+                        <div class="${titleRowClasses}">
+                            <span class="text-sm" style="${titleStyle}">${i.title}</span>
+                            <span class="whitespace-nowrap" style="${dateStyle}">${i.date || ''}</span>
+                        </div>
+                        <div class="text-xs font-bold" style="color: var(--primary-color)">${i.company}</div>
+                        <div class="text-xs mt-1.5 whitespace-pre-line" style="${descStyle}">${i.desc}</div>
+                    </div>`;
+                }).join('');
+            } else if (s.type === 'tags') {
+                content = `<div class="flex flex-wrap gap-1 ${currentTemplate !== 'split' && bodyAlign === 'center' ? 'justify-center' : currentTemplate !== 'split' && bodyAlign === 'right' ? 'justify-end' : ''}">
+                    ${s.content.split(',').map(t => `<span class="skill-tag">${t.trim()}</span>`).join('')}
+                </div>`;
+            } else {
+                const textStyle = `font-weight: ${s.bold ? 'bold' : 'normal'}; font-style: ${s.italic ? 'italic' : 'normal'}; text-decoration: ${s.underline ? 'underline' : 'none'};`;
+                content = `<div class="text-xs leading-relaxed" style="${textStyle}; color: inherit">${s.content}</div>`;
+            }
+
+            return `<div class="mb-8">
+                <div class="cv-section-title font-bold uppercase tracking-[0.2em] text-[10px] mb-4 pb-1 border-b" style="color: var(--primary-color); border-color: rgba(0,0,0,0.1)">${s.name}</div>
+                ${content}
+            </div>`;
+        }
+
+        function renderPersonalInfoInputs() {
+            const container = document.getElementById('personalInfoInputs');
+            let html = `
+                <input type="text" value="${data.personal.name}" oninput="data.personal.name = this.value; render();" class="w-full p-2 border rounded-lg font-bold text-xs" placeholder="Full Name">
+                <input type="text" value="${data.personal.title}" oninput="data.personal.title = this.value; render();" class="w-full p-2 border rounded-lg text-xs" placeholder="Job Title">
+            `;
+            data.personal.details.forEach((d, i) => {
+                html += `<div class="flex gap-1">
+                    <input type="text" value="${d.label}" oninput="data.personal.details[${i}].label = this.value; render();" class="w-20 p-2 border rounded-lg text-[10px] uppercase font-bold bg-gray-50">
+                    <input type="text" value="${d.value}" oninput="data.personal.details[${i}].value = this.value; render();" class="flex-1 p-2 border rounded-lg text-xs">
+                    <button onclick="data.personal.details.splice(${i},1); refreshUI();" class="text-red-300 px-2 hover:text-red-500">×</button>
+                </div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        function renderSortableList() {
+            const container = document.getElementById('sectionSortable');
+            container.innerHTML = sectionOrder.map(id => `
+                <div class="section-item" data-id="${id}">
+                    <span class="drag-handle">☰</span>
+                    <input type="text" value="${data.sections[id].name}" 
+                        oninput="data.sections['${id}'].name = this.value; render();" 
+                        class="text-[10px] font-bold truncate flex-1 uppercase bg-transparent border-none outline-none">
+                </div>
+            `).join('');
+        }
+
+        function toggleFormat(path, property) {
+            const pathParts = path.split('.');
+            let target = data;
+            for (let part of pathParts) {
+                target = target[part];
+            }
+            target[property] = !target[property];
+            refreshUI();
+        }
+
+        function renderEditors() {
+            const container = document.getElementById('dynamicSectionEditors');
+            container.innerHTML = sectionOrder.map(id => {
+                const s = data.sections[id];
+                let inner = "";
+                if (s.type === 'list') {
+                   inner = s.items.map((item, i) => `
+                        <div class="p-3 border rounded-lg mb-2 bg-gray-50 relative">
+                            <div class="flex gap-1 mb-2">
+                                <input type="text" value="${item.title}" oninput="data.sections['${id}'].items[${i}].title = this.value; render();" class="flex-1 p-2 border rounded-lg text-xs font-bold" placeholder="Title/Role">
+                                <button onclick="toggleFormat('sections.${id}.items.${i}', 'bold')" class="formatting-btn ${item.bold ? 'active' : ''}">B</button>
+                                <button onclick="toggleFormat('sections.${id}.items.${i}', 'italic')" class="formatting-btn ${item.italic ? 'active' : ''}">I</button>
+                                <button onclick="toggleFormat('sections.${id}.items.${i}', 'underline')" class="formatting-btn ${item.underline ? 'active' : ''}">U</button>
+                            </div>
+                            <div class="flex gap-1 mb-2">
+                                <input type="text" value="${item.date}" oninput="data.sections['${id}'].items[${i}].date = this.value; render();" class="flex-1 p-2 border rounded-lg text-xs" placeholder="Date">
+                                <button onclick="toggleFormat('sections.${id}.items.${i}', 'dateBold')" class="formatting-btn ${item.dateBold ? 'active' : ''}">B</button>
+                                <button onclick="toggleFormat('sections.${id}.items.${i}', 'dateItalic')" class="formatting-btn ${item.dateItalic ? 'active' : ''}">I</button>
+                                <button onclick="toggleFormat('sections.${id}.items.${i}', 'dateUnderline')" class="formatting-btn ${item.dateUnderline ? 'active' : ''}">U</button>
+                            </div>
+                            <input type="text" value="${item.company}" oninput="data.sections['${id}'].items[${i}].company = this.value; render();" class="w-full p-2 border rounded-lg text-xs mb-2" placeholder="Organization">
+                            <div class="relative">
+                                <textarea oninput="data.sections['${id}'].items[${i}].desc = this.value; render();" class="w-full p-2 border rounded-lg text-xs h-20" placeholder="Description">${item.desc}</textarea>
+                                <div class="flex gap-1 mt-1">
+                                    <button onclick="toggleFormat('sections.${id}.items.${i}', 'descBold')" class="formatting-btn ${item.descBold ? 'active' : ''}">B</button>
+                                    <button onclick="toggleFormat('sections.${id}.items.${i}', 'descItalic')" class="formatting-btn ${item.descItalic ? 'active' : ''}">I</button>
+                                    <button onclick="toggleFormat('sections.${id}.items.${i}', 'descUnderline')" class="formatting-btn ${item.descUnderline ? 'active' : ''}">U</button>
+                                </div>
+                            </div>
+                            <button onclick="data.sections['${id}'].items.splice(${i},1); refreshUI();" class="absolute top-1 right-1 text-red-300 hover:text-red-500">×</button>
+                        </div>
+                    `).join('') + `<button onclick="data.sections['${id}'].items.push({title:'',company:'',date:'',desc:''}); refreshUI();" class="text-xs text-blue-500 font-bold w-full p-2 border border-dashed rounded-lg">+ ADD ENTRY</button>`;
+                } else if (s.type === 'tags') {
+                    inner = `<textarea oninput="data.sections['${id}'].content = this.value; render();" class="w-full p-2 border rounded-lg text-xs h-20" placeholder="Comma separated items">${s.content}</textarea>`;
+                } else {
+                    inner = `
+                        <div class="space-y-2">
+                            <textarea oninput="data.sections['${id}'].content = this.value; render();" class="w-full p-2 border rounded-lg text-xs h-24">${s.content}</textarea>
+                            <div class="flex gap-1">
+                                <button onclick="toggleFormat('sections.${id}', 'bold')" class="formatting-btn ${s.bold ? 'active' : ''}">B</button>
+                                <button onclick="toggleFormat('sections.${id}', 'italic')" class="formatting-btn ${s.italic ? 'active' : ''}">I</button>
+                                <button onclick="toggleFormat('sections.${id}', 'underline')" class="formatting-btn ${s.underline ? 'active' : ''}">U</button>
+                            </div>
+                        </div>`;
+                }
+
+                return `<div class="pt-4 border-t first:border-0">
+                    <h2 class="sidebar-section-title mb-3">${s.name}</h2>
+                    ${inner}
+                </div>`;
+            }).join('');
+        }
+
+        function refreshUI() {
+            renderPersonalInfoInputs();
+            renderSortableList();
+            renderEditors();
+            render();
+        }
+
+        function addPersonalInfoField() {
+            data.personal.details.push({ label: 'LABEL', value: '' });
+            refreshUI();
+        }
+
+        async function downloadPDF() {
+            const element = document.getElementById('cv-target');
+            const opt = {
+                margin: 0,
+                filename: 'resume.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().from(element).set(opt).save();
+        }
+
+        window.onload = () => {
+            new Sortable(document.getElementById('sectionSortable'), {
+                animation: 150,
+                handle: '.drag-handle',
+                onEnd: (evt) => {
+                    const newOrder = [];
+                    document.querySelectorAll('#sectionSortable .section-item').forEach(el => {
+                        newOrder.push(el.dataset.id);
+                    });
+                    sectionOrder = newOrder;
+                    render();
+                    renderEditors();
+                }
+            });
+            refreshUI();
+        };
+    </script>
+</body>
+</html>
